@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>关于 - YanAI</title>
+  <meta name="description" content="YanAI 是一个精选免费AI工具的导航网站，帮助用户快速发现和使用优质的AI工具。">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">YanAI</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">全部工具</a>
+        <a href="tags.html" class="nav-link">分类浏览</a>
+        <a href="about.html" class="nav-link active">关于</a>
+      </div>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <span class="theme-icon">🌙</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="about-layout">
+    <!-- Hero -->
+    <div class="about-hero">
+      <div style="font-size:3rem;margin-bottom:16px;">⚡</div>
+      <h1 class="about-hero-title">关于 <span class="gradient-text">YanAI</span></h1>
+      <p class="about-hero-desc">
+        精选全网优质免费 AI 工具，<br>
+        让每个人都能轻松发现和使用 AI，提升效率，释放创造力。
+      </p>
+    </div>
+
+    <!-- 关于 YanAI -->
+    <div class="about-section">
+      <h2 class="about-section-title">🎯 YanAI 是什么？</h2>
+      <div class="about-content">
+        <p style="margin-bottom:16px;">
+          <strong>YanAI</strong> 是一个精心整理的 AI 工具导航网站，致力于收集和推荐<strong>免费</strong>的优质 AI 工具。我们覆盖 AI 对话、绘画、写作、编程、视频、音频、设计、搜索等多个领域。
+        </p>
+        <p style="margin-bottom:16px;">
+          面对日益增多的 AI 工具，找到适合自己的那一款变得越来越困难。YanAI 通过人工筛选和分类整理，帮你快速定位到最符合需求的 AI 工具。
+        </p>
+        <p>
+          每个工具都标注了是否<strong>完全免费</strong>或<strong>部分免费</strong>，让你在使用前就有清晰的预期。
+        </p>
+      </div>
+    </div>
+
+    <!-- 特色 -->
+    <div class="about-section">
+      <h2 class="about-section-title">✨ YanAI 的特色</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+          <div style="font-size:1.8rem;margin-bottom:10px;">🔍</div>
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:6px;">人工精选</h3>
+          <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.6;">每个工具都经过实际体验和评估，确保质量过关</p>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+          <div style="font-size:1.8rem;margin-bottom:10px;">🆓</div>
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:6px;">免费优先</h3>
+          <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.6;">90%+ 的工具提供免费使用方案，标注清晰的免费程度</p>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+          <div style="font-size:1.8rem;margin-bottom:10px;">📂</div>
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:6px;">分类清晰</h3>
+          <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.6;">12 大分类，从 AI 对话到 3D 建模，快速定位</p>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+          <div style="font-size:1.8rem;margin-bottom:10px;">🔄</div>
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:6px;">持续更新</h3>
+          <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.6;">定期收录新工具，淘汰失效工具，保持信息新鲜</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分支 -->
+    <div class="about-section">
+      <h2 class="about-section-title">📂 收录范围</h2>
+      <div class="about-content">
+        <p style="margin-bottom:16px;">
+          YanAI 目前涵盖以下 AI 工具类别：
+        </p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;">
+            <span>💬</span><span style="font-size:0.9rem;font-weight:500;">AI 对话</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;">
+            <span>🎨</span><span style="font-size:0.9rem;font-weight:500;">AI 绘画</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;">
+            <span>✍️</span><span style="font-size:0.9rem;font-weight:500;">AI 写作</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;">
+            <span>💻</span><span style="font-size:0.9rem;font-weight:500;">AI 编程</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;">
+            <span>🎬</span><span style="font-size:0.9rem;font-weight:500;">AI 视频</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;">
+            <span>🎵</span><span style="font-size:0.9rem;font-weight:500;">AI 音频</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;">
+            <span>🖌️</span><span style="font-size:0.9rem;font-weight:500;">AI 设计</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;">
+            <span>🔎</span><span style="font-size:0.9rem;font-weight:500;">AI 搜索</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;">
+            <span>📊</span><span style="font-size:0.9rem;font-weight:500;">效率工具</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;">
+            <span>🧊</span><span style="font-size:0.9rem;font-weight:500;">AI 3D</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 免责声明 -->
+    <div class="about-section">
+      <h2 class="about-section-title">📜 免责声明</h2>
+      <div class="about-content">
+        <p style="margin-bottom:12px;">
+          YanAI 仅提供 AI 工具的导航和介绍，不参与任何工具的开发和运营。各工具的免费政策可能随时间变化，请以官方平台为准。
+        </p>
+        <p style="margin-bottom:12px;">
+          工具信息会定期更新，但无法保证所有信息的实时准确性。如有错误或过时信息，欢迎反馈。
+        </p>
+        <p>
+          部分工具链接可能包含推荐码，但我们承诺不会因此影响收录标准和排序。
+        </p>
+      </div>
+    </div>
+
+    <!-- 联系 -->
+    <div class="about-section">
+      <h2 class="about-section-title">📬 联系与反馈</h2>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+        <p style="color:var(--text-secondary);margin-bottom:16px;font-size:0.9rem;">
+          发现好用的 AI 工具？看到信息有误？想要提交收录申请？随时联系我们！
+        </p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <a href="mailto:3428270273@qq.com" style="display:flex;align-items:center;gap:8px;padding:10px 18px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:10px;color:var(--accent);text-decoration:none;font-size:0.9rem;font-weight:500;">
+            📮 3428270273@qq.com
+          </a>
+          <a href="https://luckyan.dpdns.org" target="_blank" style="display:flex;align-items:center;gap:8px;padding:10px 18px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:10px;color:#22d3ee;text-decoration:none;font-size:0.9rem;font-weight:500;">
+            🌐 luckyan.dpdns.org
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-left">
+        <span class="footer-logo">⚡ YanAI</span>
+        <p class="footer-desc">精选免费 AI 工具，让 AI 触手可及</p>
+      </div>
+      <div class="footer-right">
+        <a href="index.html" class="footer-link">全部工具</a>
+        <a href="tags.html" class="footer-link">分类</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 YanAI · <a href="https://luckyan.dpdns.org" class="footer-domain">luckyan.dpdns.org</a> · Built with ❤️</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

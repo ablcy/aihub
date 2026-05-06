@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YanAI - 免费AI工具合集</title>
+  <meta name="description" content="精选优质免费AI工具，涵盖文本生成、图像创作、代码辅助、音视频处理等多个领域。">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">YanAI</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link active">全部工具</a>
+        <a href="tags.html" class="nav-link">分类浏览</a>
+        <a href="about.html" class="nav-link">关于</a>
+      </div>
+      <div class="nav-actions">
+        <div class="search-box" id="searchBox">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="搜索 AI 工具..." autocomplete="off" />
+          <div class="search-shortcut">/</div>
+        </div>
+        <button class="theme-toggle" id="themeToggle" title="切换主题">
+          <span class="theme-icon">🌙</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主内容 -->
+  <main class="main-content">
+    <!-- Hero 区域 -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-text">
+          <div class="hero-badge">✨ 持续更新中</div>
+          <h1 class="hero-title">发现优质<span class="gradient-text">免费 AI 工具</span></h1>
+          <p class="hero-subtitle">精选全网免费 AI 工具，助你提升效率，释放创造力</p>
+          <p class="hero-desc">涵盖文本生成、图像创作、代码辅助、音视频处理等多个领域。<br/>每个工具都经过人工筛选，标注是否完全免费。</p>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <span class="hero-stat-num" id="toolCount">0</span>
+              <span class="hero-stat-label">款工具</span>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+              <span class="hero-stat-num">12</span>
+              <span class="hero-stat-label">个分类</span>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+              <span class="hero-stat-num">90%+</span>
+              <span class="hero-stat-label">免费率</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-grid">
+            <div class="hero-float-card card-1">
+              <span>🎨</span><span>AI 绘画</span>
+            </div>
+            <div class="hero-float-card card-2">
+              <span>✍️</span><span>AI 写作</span>
+            </div>
+            <div class="hero-float-card card-3">
+              <span>💻</span><span>AI 编程</span>
+            </div>
+            <div class="hero-float-card card-4">
+              <span>🎵</span><span>AI 音频</span>
+            </div>
+            <div class="hero-float-card card-5">
+              <span>🎬</span><span>AI 视频</span>
+            </div>
+            <div class="hero-float-card card-6">
+              <span>💬</span><span>AI 对话</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 分类过滤 -->
+    <section class="filter-section">
+      <div class="filter-bar">
+        <button class="filter-btn active" data-category="all">
+          <span class="filter-icon">🌟</span> 全部
+        </button>
+        <button class="filter-btn" data-category="chat">
+          <span class="filter-icon">💬</span> AI 对话
+        </button>
+        <button class="filter-btn" data-category="image">
+          <span class="filter-icon">🎨</span> AI 绘画
+        </button>
+        <button class="filter-btn" data-category="writing">
+          <span class="filter-icon">✍️</span> AI 写作
+        </button>
+        <button class="filter-btn" data-category="code">
+          <span class="filter-icon">💻</span> AI 编程
+        </button>
+        <button class="filter-btn" data-category="video">
+          <span class="filter-icon">🎬</span> AI 视频
+        </button>
+        <button class="filter-btn" data-category="audio">
+          <span class="filter-icon">🎵</span> AI 音频
+        </button>
+        <button class="filter-btn" data-category="design">
+          <span class="filter-icon">🖌️</span> AI 设计
+        </button>
+        <button class="filter-btn" data-category="search">
+          <span class="filter-icon">🔎</span> AI 搜索
+        </button>
+        <button class="filter-btn" data-category="productivity">
+          <span class="filter-icon">📊</span> 效率工具
+        </button>
+        <button class="filter-btn" data-category="3d">
+          <span class="filter-icon">🧊</span> AI 3D
+        </button>
+        <button class="filter-btn" data-category="other">
+          <span class="filter-icon">🧩</span> 更多
+        </button>
+      </div>
+    </section>
+
+    <!-- 工具列表 -->
+    <section class="tools-section">
+      <div class="section-header">
+        <h2 class="section-title" id="sectionTitle">全部工具</h2>
+        <span class="tool-count-label" id="toolCountLabel"></span>
+        <span class="section-line"></span>
+      </div>
+
+      <div class="tools-grid" id="toolsGrid">
+        <!-- 工具卡片由 JS 动态生成 -->
+      </div>
+
+      <!-- 无结果提示 -->
+      <div class="no-results" id="noResults" style="display:none;">
+        <span class="no-results-icon">🔍</span>
+        <p class="no-results-text">没有找到匹配的工具</p>
+        <p class="no-results-hint">试试其他关键词或分类</p>
+      </div>
+    </section>
+
+    <!-- 推荐区域 -->
+    <section class="featured-section">
+      <div class="section-header">
+        <h2 class="section-title">⭐ 编辑推荐</h2>
+        <span class="section-line"></span>
+      </div>
+      <div class="featured-grid">
+        <a href="https://chatglm.cn" target="_blank" class="featured-card">
+          <div class="featured-card-icon">🤖</div>
+          <h3 class="featured-card-title">智谱清言</h3>
+          <p class="featured-card-desc">智谱AI出品，中文理解能力超强，支持长文档分析、代码生成、图像理解</p>
+          <div class="featured-card-meta">
+            <span class="free-badge">完全免费</span>
+            <span class="featured-card-tags">对话 · 写作 · 编程</span>
+          </div>
+        </a>
+        <a href="https://kimi.moonshot.cn" target="_blank" class="featured-card">
+          <div class="featured-card-icon">🌙</div>
+          <h3 class="featured-card-title">Kimi</h3>
+          <p class="featured-card-desc">月之暗面出品，超长上下文理解，支持200万字长文档，文件分析能力突出</p>
+          <div class="featured-card-meta">
+            <span class="free-badge">完全免费</span>
+            <span class="featured-card-tags">对话 · 文档 · 搜索</span>
+          </div>
+        </a>
+        <a href="https://www.doubao.com" target="_blank" class="featured-card">
+          <div class="featured-card-icon">🫘</div>
+          <h3 class="featured-card-title">豆包</h3>
+          <p class="featured-card-desc">字节跳动出品，AI对话+绘画+音乐创作一体化，功能丰富且完全免费</p>
+          <div class="featured-card-meta">
+            <span class="free-badge">完全免费</span>
+            <span class="featured-card-tags">对话 · 绘画 · 音乐</span>
+          </div>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-left">
+        <span class="footer-logo">⚡ YanAI</span>
+        <p class="footer-desc">精选免费 AI 工具，让 AI 触手可及</p>
+      </div>
+      <div class="footer-right">
+        <a href="about.html" class="footer-link">关于</a>
+        <a href="tags.html" class="footer-link">分类</a>
+        <a href="https://github.com" class="footer-link" target="_blank">GitHub</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 YanAI · <a href="https://luckyan.dpdns.org" class="footer-domain">luckyan.dpdns.org</a> · Built with ❤️</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

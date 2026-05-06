@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>分类浏览 - YanAI</title>
+  <meta name="description" content="按分类浏览AI工具：对话、绘画、写作、编程、视频、音频、设计等。">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">YanAI</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">全部工具</a>
+        <a href="tags.html" class="nav-link active">分类浏览</a>
+        <a href="about.html" class="nav-link">关于</a>
+      </div>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <span class="theme-icon">🌙</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="tags-layout">
+    <h1 class="page-title">📂 分类浏览</h1>
+    <p class="page-desc">按类别发现你需要的 AI 工具</p>
+
+    <div class="tags-cloud" id="tagsCloud"></div>
+
+    <div id="tagToolsSection">
+      <div class="section-header">
+        <h2 class="section-title" id="currentTagTitle">全部工具</h2>
+        <span class="tool-count-label" id="tagCountLabel"></span>
+        <span class="section-line"></span>
+      </div>
+      <div class="tools-grid" id="tagToolsGrid"></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-left">
+        <span class="footer-logo">⚡ YanAI</span>
+        <p class="footer-desc">精选免费 AI 工具，让 AI 触手可及</p>
+      </div>
+      <div class="footer-right">
+        <a href="about.html" class="footer-link">关于</a>
+        <a href="index.html" class="footer-link">全部工具</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 YanAI · <a href="https://luckyan.dpdns.org" class="footer-domain">luckyan.dpdns.org</a> · Built with ❤️</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    // Use the aiTools data from app.js
+    const categoryIcons = {
+      chat: '💬', image: '🎨', writing: '✍️', code: '💻',
+      video: '🎬', audio: '🎵', design: '🖌️', search: '🔎',
+      productivity: '📊', '3d': '🧊', other: '🧩'
+    };
+    const categoryLabels = {
+      chat: 'AI 对话', image: 'AI 绘画', writing: 'AI 写作', code: 'AI 编程',
+      video: 'AI 视频', audio: 'AI 音频', design: 'AI 设计', search: 'AI 搜索',
+      productivity: '效率工具', '3d': 'AI 3D', other: '更多'
+    };
+
+    // Count tools per category
+    const catCount = {};
+    (typeof aiTools !== 'undefined' ? aiTools : []).forEach(t => {
+      catCount[t.category] = (catCount[t.category] || 0) + 1;
+    });
+
+    const tagsCloud = document.getElementById('tagsCloud');
+
+    // "All" button
+    const allBtn = document.createElement('a');
+    allBtn.className = 'tag-bubble active';
+    allBtn.href = '#';
+    const totalTools = typeof aiTools !== 'undefined' ? aiTools.length : 0;
+    allBtn.innerHTML = `🌟 全部 <span class="tag-count">${totalTools}</span>`;
+    allBtn.onclick = (e) => { e.preventDefault(); filterCategory(null, allBtn); };
+    tagsCloud.appendChild(allBtn);
+
+    // Category buttons
+    Object.entries(categoryLabels).forEach(([cat, label]) => {
+      const btn = document.createElement('a');
+      btn.className = 'tag-bubble';
+      btn.href = '#';
+      const count = catCount[cat] || 0;
+      btn.innerHTML = `${categoryIcons[cat]} ${label} <span class="tag-count">${count}</span>`;
+      btn.onclick = (e) => { e.preventDefault(); filterCategory(cat, btn); };
+      tagsCloud.appendChild(btn);
+    });
+
+    function filterCategory(cat, btn) {
+      document.querySelectorAll('.tag-bubble').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const tools = typeof aiTools !== 'undefined' ? aiTools : [];
+      const filtered = cat ? tools.filter(t => t.category === cat) : tools;
+
+      document.getElementById('currentTagTitle').textContent = cat ? `${categoryIcons[cat]} ${categoryLabels[cat]}` : '全部工具';
+      document.getElementById('tagCountLabel').textContent = `${filtered.length} 款`;
+      renderToolCards(filtered);
+    }
+
+    function renderToolCards(tools) {
+      const grid = document.getElementById('tagToolsGrid');
+      grid.innerHTML = tools.map((tool, i) => `
+        <a href="${tool.url}" target="_blank" rel="noopener" class="tool-card" style="animation: fadeInUp 0.4s ease ${i * 0.04}s both">
+          <div class="tool-card-glow"></div>
+          <div class="tool-card-header">
+            <div class="tool-icon">${tool.icon}</div>
+            <div class="tool-card-info">
+              <div class="tool-name">${tool.name}</div>
+              <div class="tool-origin">${tool.origin}</div>
+            </div>
+            <span class="tool-arrow">→</span>
+          </div>
+          <p class="tool-desc">${tool.desc}</p>
+          <div class="tool-card-footer">
+            <div class="tool-tags">
+              ${tool.tags.slice(0, 3).map(t => `<span class="mini-tag">${t}</span>`).join('')}
+            </div>
+            <span class="free-badge ${tool.free === 'full' ? 'full' : 'partial'}">
+              ${tool.free === 'full' ? '免费' : '部分免费'}
+            </span>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    // Init
+    document.getElementById('tagCountLabel').textContent = `${totalTools} 款`;
+    renderToolCards(typeof aiTools !== 'undefined' ? aiTools : []);
+  </script>
+</body>
+</html>

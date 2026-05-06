@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>aihub - 即时聊天</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --bg-primary: #f5f5f5;
+      --bg-secondary: #ffffff;
+      --text-primary: #333333;
+      --text-secondary: #999999;
+      --accent: #07c160;
+      --accent-hover: #06ad56;
+      --border: #e5e5e5;
+      --shadow: rgba(0, 0, 0, 0.05);
+      --message-sent: #95ec69;
+      --message-received: #ffffff;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: var(--bg-secondary);
+      box-shadow: 0 0 20px var(--shadow);
+    }
+    
+    .header {
+      background: var(--bg-secondary);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .header .menu-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+      color: var(--text-primary);
+    }
+    
+    .page {
+      display: none;
+      min-height: calc(100vh - 65px);
+    }
+    
+    .page.active {
+      display: block;
+    }
+    
+    .auth-container {
+      padding: 40px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: calc(100vh - 65px);
+    }
+    
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .auth-logo h2 {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    
+    .auth-logo p {
+      color: var(--text-secondary);
+      margin-top: 8px;
+      font-size: 14px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      transition: border-color 0.2s;
+      background: var(--bg-primary);
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .btn:hover {
+      background: var(--accent-hover);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      margin-top: 16px;
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(7, 193, 96, 0.1);
+    }
+    
+    .auth-footer {
+      text-align: center;
+      margin-top: 30px;
+    }
+    
+    .auth-footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    
+    .error {
+      color: #ff4d4f;
+      font-size: 13px;
+      margin-top: 8px;
+      display: none;
+    }
+    
+    .chat-list {
+      padding: 0;
+    }
+    
+    .chat-item {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .chat-item:hover {
+      background: var(--bg-primary);
+    }
+    
+    .chat-item .name {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .chat-item .last-message {
+      font-size: 14px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .chat-item .time {
+      font-size: 12px;
+      color: var(--text-secondary);
+      float: right;
+      margin-top: -22px;
+    }
+    
+    .chat-container {
+      display: none;
+      flex-direction: column;
+      height: calc(100vh - 65px);
+    }
+    
+    .chat-container.active {
+      display: flex;
+    }
+    
+    .chat-header {
+      padding: 16px 20px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .chat-header h2 {
+      font-size: 16px;
+      font-weight: 500;
+    }
+    
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      margin-right: 12px;
+      color: var(--text-primary);
+    }
+    
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .message {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 15px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+    
+    .message.sent {
+      align-self: flex-end;
+      background: var(--message-sent);
+      border-bottom-right-radius: 2px;
+    }
+    
+    .message.received {
+      align-self: flex-start;
+      background: var(--message-received);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 2px;
+    }
+    
+    .message .sender {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    
+    .message .time {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      text-align: right;
+    }
+    
+    .message-input-container {
+      padding: 12px 20px;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+    }
+    
+    .message-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      background: var(--bg-primary);
+      resize: none;
+      max-height: 100px;
+    }
+    
+    .message-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .send-btn {
+      padding: 12px 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .send-btn:hover {
+      background: var(--accent-hover);
+    }
+    
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 200;
+      display: none;
+    }
+    
+    .menu-overlay.active {
+      display: block;
+    }
+    
+    .menu-panel {
+      position: fixed;
+      top: 0;
+      right: -280px;
+      width: 280px;
+      height: 100vh;
+      background: var(--bg-secondary);
+      z-index: 201;
+      transition: right 0.3s ease;
+      padding: 20px;
+    }
+    
+    .menu-panel.active {
+      right: 0;
+    }
+    
+    .menu-panel h3 {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .menu-item {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .menu-item:hover {
+      color: var(--accent);
+    }
+    
+    .menu-item .arrow {
+      color: var(--text-secondary);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+    
+    .empty-state p {
+      margin-bottom: 20px;
+    }
+    
+    .user-list-container {
+      padding: 20px;
+    }
+    
+    .user-list-title {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    
+    .user-item {
+      padding: 16px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .user-item:hover {
+      background: var(--border);
+    }
+    
+    .user-item .name {
+      font-size: 16px;
+      font-weight: 500;
+    }
+    
+    .user-item .id {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    
+    .settings-container {
+      padding: 20px;
+    }
+    
+    .settings-section {
+      margin-bottom: 30px;
+    }
+    
+    .settings-section h3 {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    
+    .setting-item {
+      padding: 16px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .setting-item:hover {
+      background: var(--border);
+    }
+    
+    .setting-item .label {
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+    
+    .setting-item .value {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 300;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: var(--bg-secondary);
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+    }
+    
+    .modal-content h3 {
+      margin-bottom: 24px;
+      font-size: 18px;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    
+    .modal-actions .btn {
+      flex: 1;
+    }
+    
+    .btn-cancel {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+    
+    .btn-cancel:hover {
+      background: var(--border);
+    }
+    
+    .online-indicator {
+      width: 8px;
+      height: 8px;
+      background: #52c41a;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 id="pageTitle">aihub</h1>
+      <button class="menu-btn" id="menuBtn">☰</button>
+    </div>
+    
+    <div id="loginPage" class="page active">
+      <div class="auth-container">
+        <div class="auth-logo">
+          <h2>aihub</h2>
+          <p>即时聊天，简单高效</p>
+        </div>
+        <form id="loginForm">
+          <div class="form-group">
+            <label>账号 ID</label>
+            <input type="text" id="loginId" placeholder="请输入账号ID" required>
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="loginPassword" placeholder="请输入密码" required>
+          </div>
+          <div class="error" id="loginError"></div>
+          <button type="submit" class="btn">登录</button>
+          <div class="auth-footer">
+            <a href="#" id="showRegister">还没有账号？立即注册</a>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <div id="registerPage" class="page">
+      <div class="auth-container">
+        <div class="auth-logo">
+          <h2>注册账号</h2>
+          <p>创建一个新账号</p>
+        </div>
+        <form id="registerForm">
+          <div class="form-group">
+            <label>账号 ID</label>
+            <input type="text" id="registerId" placeholder="设置账号ID（用于登录）" required>
+          </div>
+          <div class="form-group">
+            <label>显示名称</label>
+            <input type="text" id="registerName" placeholder="设置显示名称" required>
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="registerPassword" placeholder="设置密码" required>
+          </div>
+          <div class="form-group">
+            <label>确认密码</label>
+            <input type="password" id="registerConfirmPassword" placeholder="再次输入密码" required>
+          </div>
+          <div class="error" id="registerError"></div>
+          <button type="submit" class="btn">注册</button>
+          <div class="auth-footer">
+            <a href="#" id="showLogin">已有账号？立即登录</a>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <div id="chatListPage" class="page">
+      <div id="chatList" class="chat-list">
+        <div class="empty-state">
+          <p>暂无会话</p>
+          <p style="font-size: 13px;">点击右上角菜单，开始聊天</p>
+        </div>
+      </div>
+    </div>
+    
+    <div id="chatPage" class="page">
+      <div class="chat-container active">
+        <div class="chat-header">
+          <div style="display: flex; align-items: center;">
+            <button class="back-btn" id="backBtn">←</button>
+            <h2 id="chatWithName"></h2>
+          </div>
+        </div>
+        <div class="messages" id="messages"></div>
+        <div class="message-input-container">
+          <textarea class="message-input" id="messageInput" placeholder="输入消息..." rows="1"></textarea>
+          <button class="send-btn" id="sendBtn">发送</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="userListPage" class="page">
+      <div class="user-list-container">
+        <div class="user-list-title">选择联系人开始聊天</div>
+        <div id="userList"></div>
+      </div>
+    </div>
+    
+    <div id="settingsPage" class="page">
+      <div class="settings-container">
+        <div class="settings-section">
+          <h3>账号信息</h3>
+          <div class="setting-item" id="editIdBtn">
+            <div class="label">账号 ID</div>
+            <div class="value" id="currentId"></div>
+          </div>
+          <div class="setting-item" id="editNameBtn">
+            <div class="label">显示名称</div>
+            <div class="value" id="currentName"></div>
+          </div>
+          <div class="setting-item" id="changePasswordBtn">
+            <div class="label">修改密码</div>
+            <div class="value">点击修改</div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>其他</h3>
+          <div class="setting-item" id="logoutBtn">
+            <div class="label" style="color: #ff4d4f;">退出登录</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="menu-overlay" id="menuOverlay"></div>
+  <div class="menu-panel" id="menuPanel">
+    <h3 id="menuUserName">用户</h3>
+    <div class="menu-item" id="menuNewChat">
+      <span>发起聊天</span>
+      <span class="arrow">›</span>
+    </div>
+    <div class="menu-item" id="menuSettings">
+      <span>设置</span>
+      <span class="arrow">›</span>
+    </div>
+  </div>
+  
+  <div class="modal" id="editIdModal">
+    <div class="modal-content">
+      <h3>修改账号 ID</h3>
+      <form id="editIdForm">
+        <div class="form-group">
+          <label>新账号 ID</label>
+          <input type="text" id="newId" required>
+        </div>
+        <div class="form-group">
+          <label>当前密码</label>
+          <input type="password" id="confirmPasswordForId" required>
+        </div>
+        <div class="error" id="editIdError"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-cancel" id="cancelEditId">取消</button>
+          <button type="submit" class="btn">确认</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div class="modal" id="editNameModal">
+    <div class="modal-content">
+      <h3>修改显示名称</h3>
+      <form id="editNameForm">
+        <div class="form-group">
+          <label>新显示名称</label>
+          <input type="text" id="newName" required>
+        </div>
+        <div class="error" id="editNameError"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-cancel" id="cancelEditName">取消</button>
+          <button type="submit" class="btn">确认</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div class="modal" id="changePasswordModal">
+    <div class="modal-content">
+      <h3>修改密码</h3>
+      <form id="changePasswordForm">
+        <div class="form-group">
+          <label>当前密码</label>
+          <input type="password" id="currentPassword" required>
+        </div>
+        <div class="form-group">
+          <label>新密码</label>
+          <input type="password" id="newPassword" required>
+        </div>
+        <div class="form-group">
+          <label>确认新密码</label>
+          <input type="password" id="confirmNewPassword" required>
+        </div>
+        <div class="error" id="changePasswordError"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-cancel" id="cancelChangePassword">取消</button>
+          <button type="submit" class="btn">确认</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    
+    let currentUser = null;
+    let currentChatUserId = null;
+    let pollingInterval = null;
+    
+    function $(selector) {
+      return document.querySelector(selector);
+    }
+    
+    function $$(selector) {
+      return document.querySelectorAll(selector);
+    }
+    
+    function showPage(pageId) {
+      $$('.page').forEach(p => p.classList.remove('active'));
+      $(`#${pageId}`).classList.add('active');
+      
+      const titles = {
+        'chatListPage': 'aihub',
+        'chatPage': '聊天',
+        'userListPage': '选择联系人',
+        'settingsPage': '设置'
+      };
+      $('#pageTitle').textContent = titles[pageId] || 'aihub';
+    }
+    
+    function showError(elementId, message) {
+      const errorEl = $(`#${elementId}`);
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      setTimeout(() => errorEl.style.display = 'none', 3000);
+    }
+    
+    function checkAuth() {
+      const user = localStorage.getItem('aihub_user');
+      if (user) {
+        currentUser = JSON.parse(user);
+        showPage('chatListPage');
+        loadChats();
+        startPolling();
+      } else {
+        showPage('loginPage');
+      }
+    }
+    
+    async function login(id, password) {
+      try {
+        const response = await fetch(`${API_BASE}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          currentUser = data.user;
+          localStorage.setItem('aihub_user', JSON.stringify(data.user));
+          localStorage.setItem('aihub_token', data.token);
+          showPage('chatListPage');
+          loadChats();
+          startPolling();
+        } else {
+          showError('loginError', data.error || '登录失败');
+        }
+      } catch (error) {
+        showError('loginError', '网络错误，请检查服务器连接');
+      }
+    }
+    
+    async function register(id, name, password) {
+      try {
+        const response = await fetch(`${API_BASE}/api/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, name, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          showError('registerError', '注册成功！请登录');
+          setTimeout(() => showPage('loginPage'), 1000);
+        } else {
+          showError('registerError', data.error || '注册失败');
+        }
+      } catch (error) {
+        showError('registerError', '网络错误');
+      }
+    }
+    
+    async function loadChats() {
+      try {
+        const token = localStorage.getItem('aihub_token');
+        const response = await fetch(`${API_BASE}/api/chats`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const chats = await response.json();
+          renderChats(chats);
+        }
+      } catch (error) {
+        console.error('加载会话失败:', error);
+      }
+    }
+    
+    function renderChats(chats) {
+      const chatList = $('#chatList');
+      
+      if (chats.length === 0) {
+        chatList.innerHTML = `
+          <div class="empty-state">
+            <p>暂无会话</p>
+            <p style="font-size: 13px;">点击右上角菜单，开始聊天</p>
+          </div>
+        `;
+        return;
+      }
+      
+      chatList.innerHTML = chats.map(chat => `
+        <div class="chat-item" data-id="${chat.userId}">
+          <div class="name"><span class="online-indicator"></span>${chat.name}</div>
+          <div class="last-message">${chat.lastMessage || '暂无消息'}</div>
+          <div class="time">${chat.lastMessageTime || ''}</div>
+        </div>
+      `).join('');
+      
+      chatList.querySelectorAll('.chat-item').forEach(item => {
+        item.addEventListener('click', () => openChat(item.dataset.id));
+      });
+    }
+    
+    async function loadUsers() {
+      try {
+        const token = localStorage.getItem('aihub_token');
+        const response = await fetch(`${API_BASE}/api/users`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const users = await response.json();
+          renderUsers(users);
+        }
+      } catch (error) {
+        console.error('加载用户失败:', error);
+      }
+    }
+    
+    function renderUsers(users) {
+      const userList = $('#userList');
+      userList.innerHTML = users.map(user => `
+        <div class="user-item" data-id="${user.id}">
+          <div class="name">${user.name}</div>
+          <div class="id">ID: ${user.id}</div>
+        </div>
+      `).join('');
+      
+      userList.querySelectorAll('.user-item').forEach(item => {
+        item.addEventListener('click', () => openChat(item.dataset.id));
+      });
+    }
+    
+    async function openChat(userId) {
+      currentChatUserId = userId;
+      
+      try {
+        const token = localStorage.getItem('aihub_token');
+        const response = await fetch(`${API_BASE}/api/users/${userId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const user = await response.json();
+          $('#chatWithName').textContent = user.name;
+          showPage('chatPage');
+          await loadMessages();
+        }
+      } catch (error) {
+        console.error('打开聊天失败:', error);
+      }
+    }
+    
+    async function loadMessages() {
+      if (!currentChatUserId) return;
+      
+      try {
+        const token = localStorage.getItem('aihub_token');
+        const response = await fetch(`${API_BASE}/api/messages/${currentChatUserId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const messages = await response.json();
+          renderMessages(messages);
+        }
+      } catch (error) {
+        console.error('加载消息失败:', error);
+      }
+    }
+    
+    function renderMessages(messages) {
+      const messagesEl = $('#messages');
+      messagesEl.innerHTML = messages.map(msg => `
+        <div class="message ${msg.senderId === currentUser.id ? 'sent' : 'received'}">
+          ${msg.senderId !== currentUser.id ? `<div class="sender">${msg.senderName}</div>` : ''}
+          <div class="content">${msg.content}</div>
+          <div class="time">${formatTime(msg.createdAt)}</div>
+        </div>
+      `).join('');
+      
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+    
+    function formatTime(dateStr) {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diff = now - date;
+      
+      if (diff < 86400000) {
+        return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      }
+      return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }) + ' ' + 
+             date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    async function sendMessage(content) {
+      if (!content.trim() || !currentChatUserId) return;
+      
+      try {
+        const token = localStorage.getItem('aihub_token');
+        const response = await fetch(`${API_BASE}/api/messages`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            receiverId: currentChatUserId,
+            content: content.trim()
+          })
+        });
+        
+        if (response.ok) {
+          $('#messageInput').value = '';
+          await loadMessages();
+          loadChats();
+        }
+      } catch (error) {
+        console.error('发送消息失败:', error);
+      }
+    }
+    
+    function startPolling() {
+      if (pollingInterval) clearInterval(pollingInterval);
+      
+      pollingInterval = setInterval(async () => {
+        if (currentChatUserId && $('#chatPage').classList.contains('active')) {
+          await loadMessages();
+        }
+        await loadChats();
+      }, 3000);
+    }
+    
+    function logout() {
+      localStorage.removeItem('aihub_user');
+      localStorage.removeItem('aihub_token');
+      currentUser = null;
+      currentChatUserId = null;
+      if (pollingInterval) clearInterval(pollingInterval);
+      showPage('loginPage');
+    }
+    
+    async function updateProfile(type, data) {
+      try {
+        const token = localStorage.getItem('aihub_token');
+        const response = await fetch(`${API_BASE}/api/profile`, {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ type, ...data })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          currentUser = result.user;
+          localStorage.setItem('aihub_user', JSON.stringify(result.user));
+          return true;
+        } else {
+          return result.error;
+        }
+      } catch (error) {
+        return '网络错误';
+      }
+    }
+    
+    $('#loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = $('#loginId').value;
+      const password = $('#loginPassword').value;
+      login(id, password);
+    });
+    
+    $('#registerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = $('#registerId').value;
+      const name = $('#registerName').value;
+      const password = $('#registerPassword').value;
+      const confirmPassword = $('#registerConfirmPassword').value;
+      
+      if (password !== confirmPassword) {
+        showError('registerError', '两次密码输入不一致');
+        return;
+      }
+      
+      register(id, name, password);
+    });
+    
+    $('#showRegister').addEventListener('click', (e) => {
+      e.preventDefault();
+      showPage('registerPage');
+    });
+    
+    $('#showLogin').addEventListener('click', (e) => {
+      e.preventDefault();
+      showPage('loginPage');
+    });
+    
+    $('#backBtn').addEventListener('click', () => {
+      currentChatUserId = null;
+      showPage('chatListPage');
+    });
+    
+    $('#sendBtn').addEventListener('click', () => {
+      const content = $('#messageInput').value;
+      sendMessage(content);
+    });
+    
+    $('#messageInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const content = $('#messageInput').value;
+        sendMessage(content);
+      }
+    });
+    
+    $('#menuBtn').addEventListener('click', () => {
+      $('#menuOverlay').classList.add('active');
+      $('#menuPanel').classList.add('active');
+      $('#menuUserName').textContent = currentUser?.name || '用户';
+    });
+    
+    $('#menuOverlay').addEventListener('click', closeMenu);
+    
+    function closeMenu() {
+      $('#menuOverlay').classList.remove('active');
+      $('#menuPanel').classList.remove('active');
+    }
+    
+    $('#menuNewChat').addEventListener('click', () => {
+      closeMenu();
+      loadUsers();
+      showPage('userListPage');
+    });
+    
+    $('#menuSettings').addEventListener('click', () => {
+      closeMenu();
+      $('#currentId').textContent = currentUser?.id || '';
+      $('#currentName').textContent = currentUser?.name || '';
+      showPage('settingsPage');
+    });
+    
+    $('#logoutBtn').addEventListener('click', () => {
+      logout();
+    });
+    
+    $('#editIdBtn').addEventListener('click', () => {
+      $('#editIdModal').classList.add('active');
+    });
+    
+    $('#cancelEditId').addEventListener('click', () => {
+      $('#editIdModal').classList.remove('active');
+    });
+    
+    $('#editIdForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newId = $('#newId').value;
+      const password = $('#confirmPasswordForId').value;
+      
+      const error = await updateProfile('id', { newId, password });
+      if (error) {
+        showError('editIdError', error);
+      } else {
+        $('#editIdModal').classList.remove('active');
+        $('#currentId').textContent = currentUser?.id || '';
+      }
+    });
+    
+    $('#editNameBtn').addEventListener('click', () => {
+      $('#newName').value = currentUser?.name || '';
+      $('#editNameModal').classList.add('active');
+    });
+    
+    $('#cancelEditName').addEventListener('click', () => {
+      $('#editNameModal').classList.remove('active');
+    });
+    
+    $('#editNameForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newName = $('#newName').value;
+      
+      const error = await updateProfile('name', { newName });
+      if (error) {
+        showError('editNameError', error);
+      } else {
+        $('#editNameModal').classList.remove('active');
+        $('#currentName').textContent = currentUser?.name || '';
+        $('#menuUserName').textContent = currentUser?.name || '';
+      }
+    });
+    
+    $('#changePasswordBtn').addEventListener('click', () => {
+      $('#changePasswordModal').classList.add('active');
+    });
+    
+    $('#cancelChangePassword').addEventListener('click', () => {
+      $('#changePasswordModal').classList.remove('active');
+    });
+    
+    $('#changePasswordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const currentPassword = $('#currentPassword').value;
+      const newPassword = $('#newPassword').value;
+      const confirmNewPassword = $('#confirmNewPassword').value;
+      
+      if (newPassword !== confirmNewPassword) {
+        showError('changePasswordError', '两次新密码输入不一致');
+        return;
+      }
+      
+      const error = await updateProfile('password', { currentPassword, newPassword });
+      if (error) {
+        showError('changePasswordError', error);
+      } else {
+        $('#changePasswordModal').classList.remove('active');
+        alert('密码修改成功！');
+      }
+    });
+    
+    $$('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('active');
+        }
+      });
+    });
+    
+    checkAuth();
+  </script>
+</body>
+</html>

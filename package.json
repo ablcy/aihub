@@ -1,0 +1,11 @@
+{
+  "name": "aihub-chat",
+  "version": "1.0.0",
+  "description": "简洁的即时聊天工具",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "MIT"
+}

@@ -4,6 +4,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const PORT = process.env.PORT || 8080;
+const ROOT_DIR = path.resolve(__dirname);
 
 const MIME_TYPES = {
   '.html': 'text/html',
@@ -17,7 +18,7 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
-const DB_PATH = path.join(__dirname, 'data.json');
+const DB_PATH = path.join(ROOT_DIR, 'data.json');
 
 let db = {
   users: {},
@@ -358,14 +359,16 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = url.pathname;
   
+  console.log(`[${new Date().toISOString()}] ${req.method} ${pathname}`);
+  
   if (pathname.startsWith('/api/')) {
     handleAPI(req, res);
     return;
   }
   
-  let filePath = '.' + pathname;
-  if (filePath === './') {
-    filePath = './index.html';
+  let filePath = path.join(ROOT_DIR, pathname);
+  if (pathname === '/' || pathname === '') {
+    filePath = path.join(ROOT_DIR, 'index.html');
   }
   
   const extname = String(path.extname(filePath)).toLowerCase();
@@ -374,8 +377,9 @@ const server = http.createServer((req, res) => {
   fs.readFile(filePath, (error, content) => {
     if (error) {
       if (error.code === 'ENOENT') {
-        fs.readFile('./index.html', (err, indexContent) => {
+        fs.readFile(path.join(ROOT_DIR, 'index.html'), (err, indexContent) => {
           if (err) {
+            console.error('Failed to read index.html:', err);
             res.writeHead(404);
             res.end('Not Found');
             return;
@@ -384,6 +388,7 @@ const server = http.createServer((req, res) => {
           res.end(indexContent, 'utf-8');
         });
       } else {
+        console.error('Server error:', error);
         res.writeHead(500);
         res.end('Server Error: ' + error.code);
       }

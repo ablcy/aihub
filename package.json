@@ -1,10 +1,13 @@
 {
   "name": "aihub-chat",
-  "version": "1.0.0",
-  "description": "简洁的即时聊天工具",
+  "version": "1.2.0",
+  "description": "简洁的即时聊天工具（支持群聊）",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   },
   "author": "",
   "license": "MIT"

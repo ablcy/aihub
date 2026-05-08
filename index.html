@@ -2,10 +2,8 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>aihub - 即时聊天</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -14,40 +12,42 @@
     }
     
     :root {
-      --bg-primary: #f5f5f5;
-      --bg-secondary: #ffffff;
-      --text-primary: #333333;
-      --text-secondary: #999999;
+      --bg-primary: #ededed;
+      --bg-secondary: #f5f5f5;
+      --bg-white: #ffffff;
+      --text-primary: #191919;
+      --text-secondary: #888888;
+      --text-secondary-light: #b8b8b8;
       --accent: #07c160;
-      --accent-hover: #06ad56;
-      --border: #e5e5e5;
-      --shadow: rgba(0, 0, 0, 0.05);
+      --accent-light: #07c16020;
+      --border-color: #e0e0e0;
       --message-sent: #95ec69;
       --message-received: #ffffff;
+      --tab-active: #07c160;
+      --tab-inactive: #999999;
     }
     
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
       background: var(--bg-primary);
       color: var(--text-primary);
       min-height: 100vh;
+      overflow-x: hidden;
     }
     
-    .container {
+    .app {
       max-width: 480px;
       margin: 0 auto;
       min-height: 100vh;
-      background: var(--bg-secondary);
-      box-shadow: 0 0 20px var(--shadow);
+      background: var(--bg-primary);
+      position: relative;
     }
     
     .header {
       background: var(--bg-secondary);
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 12px 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-color);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -55,71 +55,383 @@
     
     .header h1 {
       font-size: 18px;
-      font-weight: 600;
+      font-weight: 500;
     }
     
-    .header .menu-btn {
+    .header .back-btn {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
       background: none;
       border: none;
       font-size: 24px;
-      cursor: pointer;
-      padding: 8px;
       color: var(--text-primary);
+      cursor: pointer;
+    }
+    
+    .header .action-btn {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: var(--text-primary);
+      cursor: pointer;
     }
     
     .page {
       display: none;
-      min-height: calc(100vh - 65px);
+      height: calc(100vh - 110px);
+      overflow-y: auto;
     }
     
     .page.active {
       display: block;
     }
     
-    .auth-container {
-      padding: 40px 30px;
+    .chat-list-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+    }
+    
+    .chat-list-item:active {
+      background: var(--accent-light);
+    }
+    
+    .chat-list-item .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    
+    .chat-list-item .avatar.group {
+      background: #ff9800;
+    }
+    
+    .chat-list-item .info {
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .chat-list-item .name-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    
+    .chat-list-item .name {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-primary);
+    }
+    
+    .chat-list-item .time {
+      font-size: 12px;
+      color: var(--text-secondary-light);
+    }
+    
+    .chat-list-item .last-msg {
+      font-size: 14px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    .chat-container {
+      display: none;
+      flex-direction: column;
+      height: calc(100vh - 110px);
+    }
+    
+    .chat-container.active {
+      display: flex;
+    }
+    
+    .chat-header-bar {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .chat-member-count {
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
       display: flex;
       flex-direction: column;
+      gap: 16px;
+    }
+    
+    .message {
+      display: flex;
+      align-items: flex-start;
+    }
+    
+    .message.sent {
+      flex-direction: row-reverse;
+    }
+    
+    .message .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
       justify-content: center;
-      height: calc(100vh - 65px);
+      font-size: 16px;
+      flex-shrink: 0;
+      margin: 0 8px;
+    }
+    
+    .message.sent .avatar {
+      background: #07c160;
+    }
+    
+    .message .content-wrapper {
+      max-width: 70%;
+    }
+    
+    .message .name {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      margin-left: 4px;
+    }
+    
+    .message .bubble {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 16px;
+      line-height: 1.5;
+      word-wrap: break-word;
+      position: relative;
+    }
+    
+    .message.received .bubble {
+      background: var(--message-received);
+      border: 1px solid var(--border-color);
+    }
+    
+    .message.received .bubble::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      top: 12px;
+      border: 6px solid transparent;
+      border-right-color: var(--border-color);
+    }
+    
+    .message.received .bubble::after {
+      content: '';
+      position: absolute;
+      left: -6px;
+      top: 13px;
+      border: 5px solid transparent;
+      border-right-color: var(--message-received);
+    }
+    
+    .message.sent .bubble {
+      background: var(--message-sent);
+    }
+    
+    .message.sent .bubble::before {
+      content: '';
+      position: absolute;
+      right: -8px;
+      top: 12px;
+      border: 6px solid transparent;
+      border-left-color: var(--message-sent);
+    }
+    
+    .input-bar {
+      display: flex;
+      align-items: flex-end;
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+      gap: 8px;
+    }
+    
+    .input-bar textarea {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 16px;
+      line-height: 1.4;
+      max-height: 100px;
+      resize: none;
+      font-family: inherit;
+      background: var(--bg-white);
+    }
+    
+    .input-bar textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .input-bar .send-btn {
+      padding: 8px 16px;
+      background: var(--message-sent);
+      color: var(--text-primary);
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    
+    .input-bar .send-btn:active {
+      background: #7bc959;
+    }
+    
+    .tab-bar {
+      display: flex;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+      position: sticky;
+      bottom: 0;
+      height: 54px;
+    }
+    
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--tab-inactive);
+      font-size: 10px;
+      padding: 4px 0;
+    }
+    
+    .tab-item.active {
+      color: var(--tab-active);
+    }
+    
+    .tab-item .icon {
+      font-size: 24px;
+      margin-bottom: 2px;
+    }
+    
+    .contact-list-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+    }
+    
+    .contact-list-item:active {
+      background: var(--accent-light);
+    }
+    
+    .contact-list-item .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-right: 12px;
+    }
+    
+    .contact-list-item .name {
+      font-size: 16px;
+      color: var(--text-primary);
+    }
+    
+    .contact-list-item .arrow {
+      margin-left: auto;
+      color: var(--text-secondary-light);
+      font-size: 18px;
+    }
+    
+    .auth-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: calc(100vh - 54px);
+      padding: 40px 30px;
+      background: var(--bg-white);
     }
     
     .auth-logo {
-      text-align: center;
       margin-bottom: 40px;
     }
     
-    .auth-logo h2 {
-      font-size: 28px;
-      font-weight: 600;
-      color: var(--accent);
+    .auth-logo .logo {
+      width: 80px;
+      height: 80px;
+      background: var(--accent);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 40px;
+      margin: 0 auto 16px;
     }
     
-    .auth-logo p {
-      color: var(--text-secondary);
-      margin-top: 8px;
-      font-size: 14px;
+    .auth-logo h2 {
+      font-size: 24px;
+      font-weight: 400;
+      text-align: center;
+      color: var(--text-primary);
     }
     
     .form-group {
       margin-bottom: 20px;
-    }
-    
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: var(--text-secondary);
+      width: 100%;
     }
     
     .form-group input {
       width: 100%;
       padding: 14px 16px;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-color);
       border-radius: 8px;
-      font-size: 15px;
-      transition: border-color 0.2s;
+      font-size: 16px;
       background: var(--bg-primary);
+      font-family: inherit;
     }
     
     .form-group input:focus {
@@ -134,14 +446,12 @@
       color: white;
       border: none;
       border-radius: 8px;
-      font-size: 16px;
-      font-weight: 500;
+      font-size: 17px;
       cursor: pointer;
-      transition: background 0.2s;
     }
     
-    .btn:hover {
-      background: var(--accent-hover);
+    .btn:active {
+      background: #06ad56;
     }
     
     .btn-secondary {
@@ -151,19 +461,19 @@
       margin-top: 16px;
     }
     
-    .btn-secondary:hover {
-      background: rgba(7, 193, 96, 0.1);
+    .btn-secondary:active {
+      background: var(--accent-light);
     }
     
-    .auth-footer {
+    .auth-link {
       text-align: center;
-      margin-top: 30px;
+      margin-top: 24px;
+      font-size: 14px;
     }
     
-    .auth-footer a {
+    .auth-link a {
       color: var(--accent);
       text-decoration: none;
-      font-size: 14px;
     }
     
     .error {
@@ -173,159 +483,8 @@
       display: none;
     }
     
-    .chat-list {
-      padding: 0;
-    }
-    
-    .chat-item {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    
-    .chat-item:hover {
-      background: var(--bg-primary);
-    }
-    
-    .chat-item .name {
-      font-size: 16px;
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-    
-    .chat-item .last-message {
-      font-size: 14px;
-      color: var(--text-secondary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
-    .chat-item .time {
-      font-size: 12px;
-      color: var(--text-secondary);
-      float: right;
-      margin-top: -22px;
-    }
-    
-    .chat-container {
+    .modal-overlay {
       display: none;
-      flex-direction: column;
-      height: calc(100vh - 65px);
-    }
-    
-    .chat-container.active {
-      display: flex;
-    }
-    
-    .chat-header {
-      padding: 16px 20px;
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .chat-header h2 {
-      font-size: 16px;
-      font-weight: 500;
-    }
-    
-    .back-btn {
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      margin-right: 12px;
-      color: var(--text-primary);
-    }
-    
-    .messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    
-    .message {
-      max-width: 75%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 15px;
-      line-height: 1.4;
-      word-wrap: break-word;
-    }
-    
-    .message.sent {
-      align-self: flex-end;
-      background: var(--message-sent);
-      border-bottom-right-radius: 2px;
-    }
-    
-    .message.received {
-      align-self: flex-start;
-      background: var(--message-received);
-      border: 1px solid var(--border);
-      border-bottom-left-radius: 2px;
-    }
-    
-    .message .sender {
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
-    }
-    
-    .message .time {
-      font-size: 11px;
-      color: var(--text-secondary);
-      margin-top: 4px;
-      text-align: right;
-    }
-    
-    .message-input-container {
-      padding: 12px 20px;
-      background: var(--bg-secondary);
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 12px;
-    }
-    
-    .message-input {
-      flex: 1;
-      padding: 12px 16px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 15px;
-      background: var(--bg-primary);
-      resize: none;
-      max-height: 100px;
-    }
-    
-    .message-input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-    
-    .send-btn {
-      padding: 12px 20px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    
-    .send-btn:hover {
-      background: var(--accent-hover);
-    }
-    
-    .menu-overlay {
       position: fixed;
       top: 0;
       left: 0;
@@ -333,168 +492,43 @@
       bottom: 0;
       background: rgba(0, 0, 0, 0.5);
       z-index: 200;
-      display: none;
     }
     
-    .menu-overlay.active {
+    .modal-overlay.active {
       display: block;
     }
     
-    .menu-panel {
-      position: fixed;
-      top: 0;
-      right: -280px;
-      width: 280px;
-      height: 100vh;
-      background: var(--bg-secondary);
-      z-index: 201;
-      transition: right 0.3s ease;
-      padding: 20px;
-    }
-    
-    .menu-panel.active {
-      right: 0;
-    }
-    
-    .menu-panel h3 {
-      margin-bottom: 30px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    
-    .menu-item {
-      padding: 16px 0;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      font-size: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .menu-item:hover {
-      color: var(--accent);
-    }
-    
-    .menu-item .arrow {
-      color: var(--text-secondary);
-    }
-    
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-secondary);
-    }
-    
-    .empty-state p {
-      margin-bottom: 20px;
-    }
-    
-    .user-list-container {
-      padding: 20px;
-    }
-    
-    .user-list-title {
-      font-size: 14px;
-      color: var(--text-secondary);
-      margin-bottom: 16px;
-    }
-    
-    .user-item {
-      padding: 16px;
-      background: var(--bg-primary);
-      border-radius: 8px;
-      margin-bottom: 12px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    
-    .user-item:hover {
-      background: var(--border);
-    }
-    
-    .user-item .name {
-      font-size: 16px;
-      font-weight: 500;
-    }
-    
-    .user-item .id {
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-top: 4px;
-    }
-    
-    .settings-container {
-      padding: 20px;
-    }
-    
-    .settings-section {
-      margin-bottom: 30px;
-    }
-    
-    .settings-section h3 {
-      font-size: 14px;
-      color: var(--text-secondary);
-      margin-bottom: 16px;
-    }
-    
-    .setting-item {
-      padding: 16px;
-      background: var(--bg-primary);
-      border-radius: 8px;
-      margin-bottom: 12px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    
-    .setting-item:hover {
-      background: var(--border);
-    }
-    
-    .setting-item .label {
-      font-size: 15px;
-      margin-bottom: 4px;
-    }
-    
-    .setting-item .value {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-    
     .modal {
-      display: none;
       position: fixed;
-      top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 300;
-      justify-content: center;
-      align-items: center;
+      background: var(--bg-white);
+      border-radius: 16px 16px 0 0;
+      padding: 20px;
+      z-index: 201;
+      transform: translateY(100%);
+      transition: transform 0.3s;
     }
     
     .modal.active {
-      display: flex;
+      transform: translateY(0);
     }
     
-    .modal-content {
-      background: var(--bg-secondary);
-      padding: 30px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 400px;
+    .modal h3 {
+      font-size: 17px;
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 500;
     }
     
-    .modal-content h3 {
-      margin-bottom: 24px;
-      font-size: 18px;
+    .modal .form-group {
+      margin-bottom: 16px;
     }
     
     .modal-actions {
       display: flex;
       gap: 12px;
-      margin-top: 24px;
     }
     
     .modal-actions .btn {
@@ -506,215 +540,378 @@
       color: var(--text-primary);
     }
     
-    .btn-cancel:hover {
-      background: var(--border);
+    .btn-cancel:active {
+      background: var(--border-color);
     }
     
-    .online-indicator {
-      width: 8px;
-      height: 8px;
-      background: #52c41a;
+    .group-info-section {
+      padding: 12px 16px;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+    }
+    
+    .group-info-section:active {
+      background: var(--accent-light);
+    }
+    
+    .group-info-section .title {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    
+    .group-info-section .members {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .member-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    
+    .member-avatar.more {
+      background: var(--border-color);
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+    
+    .create-group-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      color: var(--accent);
+    }
+    
+    .create-group-item:active {
+      background: var(--accent-light);
+    }
+    
+    .create-group-item .icon {
+      font-size: 24px;
+      margin-right: 12px;
+    }
+    
+    .create-group-item .text {
+      font-size: 16px;
+    }
+    
+    .selectable-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+    }
+    
+    .selectable-item:active {
+      background: var(--accent-light);
+    }
+    
+    .selectable-item .checkbox {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border-color);
       border-radius: 50%;
-      display: inline-block;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: white;
+    }
+    
+    .selectable-item.selected .checkbox {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    
+    .selectable-item .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-right: 12px;
+    }
+    
+    .selectable-item .name {
+      font-size: 16px;
+      color: var(--text-primary);
+    }
+    
+    .selected-count {
+      text-align: center;
+      padding: 12px;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .settings-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+    }
+    
+    .settings-item:active {
+      background: var(--accent-light);
+    }
+    
+    .settings-item .label {
+      font-size: 16px;
+      color: var(--text-primary);
+      flex: 1;
+    }
+    
+    .settings-item .value {
+      font-size: 15px;
+      color: var(--text-secondary);
       margin-right: 8px;
+    }
+    
+    .settings-item .arrow {
+      color: var(--text-secondary-light);
+      font-size: 18px;
+    }
+    
+    .logout-btn {
+      color: #ff4d4f;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    
+    .profile-header {
+      text-align: center;
+      padding: 30px 20px;
+      background: var(--bg-white);
+    }
+    
+    .profile-header .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 12px;
+    }
+    
+    .profile-header .name {
+      font-size: 20px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    
+    .profile-header .id {
+      font-size: 14px;
+      color: var(--text-secondary);
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="app">
+    <div class="page active" id="chatPage">
+      <div class="header">
+        <h1>aihub</h1>
+      </div>
+      <div id="chatList">
+        <div class="empty-state">暂无会话<br>点击右上角+发起新聊天</div>
+      </div>
+    </div>
+    
+    <div class="page" id="contactPage">
+      <div class="header">
+        <h1>通讯录</h1>
+      </div>
+      <div class="contact-list-item" id="showAllContacts">
+        <div class="avatar">👥</div>
+        <div class="name">发起群聊</div>
+        <div class="arrow">›</div>
+      </div>
+      <div id="contactList"></div>
+    </div>
+    
+    <div class="page" id="groupPage">
+      <div class="header">
+        <button class="back-btn" onclick="showTab('chat')">‹</button>
+        <h1>我的群聊</h1>
+      </div>
+      <div id="groupList">
+        <div class="empty-state">暂无群聊<br>从通讯录发起群聊</div>
+      </div>
+    </div>
+    
+    <div class="page" id="profilePage">
+      <div class="header">
+        <h1>我的</h1>
+      </div>
+      <div class="profile-header" id="profileHeader">
+        <div class="avatar" id="profileAvatar"></div>
+        <div class="name" id="profileName"></div>
+        <div class="id" id="profileId"></div>
+      </div>
+      <div style="height: 16px;"></div>
+      <div class="settings-item" id="editNameBtn">
+        <div class="label">设置昵称</div>
+        <div class="arrow">›</div>
+      </div>
+      <div class="settings-item" id="changePasswordBtn">
+        <div class="label">修改密码</div>
+        <div class="arrow">›</div>
+      </div>
+      <div class="settings-item logout-btn" id="logoutBtn">
+        <div class="label">退出登录</div>
+      </div>
+    </div>
+    
+    <div class="tab-bar">
+      <div class="tab-item active" data-tab="chat" onclick="showTab('chat')">
+        <div class="icon">💬</div>
+        <div>聊天</div>
+      </div>
+      <div class="tab-item" data-tab="contact" onclick="showTab('contact')">
+        <div class="icon">👥</div>
+        <div>通讯录</div>
+      </div>
+      <div class="tab-item" data-tab="group" onclick="showTab('group')">
+        <div class="icon">👫</div>
+        <div>群聊</div>
+      </div>
+      <div class="tab-item" data-tab="profile" onclick="showTab('profile')">
+        <div class="icon">👤</div>
+        <div>我的</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal-overlay" id="chatDetailOverlay" onclick="closeChatDetail()"></div>
+  <div class="modal" id="chatDetailModal">
+    <div class="chat-header-bar">
+      <span class="chat-member-count" id="chatMemberCount" onclick="showGroupMembers()"></span>
+    </div>
+    <div class="chat-container active" id="messageContainer">
+      <div class="messages" id="messages"></div>
+      <div class="input-bar">
+        <textarea id="messageInput" placeholder="输入消息..." rows="1"></textarea>
+        <button class="send-btn" onclick="sendMessage()">发送</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal-overlay" id="selectContactOverlay" onclick="closeSelectContact()"></div>
+  <div class="modal" id="selectContactModal">
     <div class="header">
-      <h1 id="pageTitle">aihub</h1>
-      <button class="menu-btn" id="menuBtn">☰</button>
+      <button class="back-btn" onclick="closeSelectContact()">‹</button>
+      <h1>选择联系人</h1>
+      <button class="action-btn" onclick="createGroup()">✓</button>
     </div>
-    
-    <div id="loginPage" class="page active">
-      <div class="auth-container">
-        <div class="auth-logo">
-          <h2>aihub</h2>
-          <p>即时聊天，简单高效</p>
-        </div>
-        <form id="loginForm">
-          <div class="form-group">
-            <label>账号 ID</label>
-            <input type="text" id="loginId" placeholder="请输入账号ID" required>
-          </div>
-          <div class="form-group">
-            <label>密码</label>
-            <input type="password" id="loginPassword" placeholder="请输入密码" required>
-          </div>
-          <div class="error" id="loginError"></div>
-          <button type="submit" class="btn">登录</button>
-          <div class="auth-footer">
-            <a href="#" id="showRegister">还没有账号？立即注册</a>
-          </div>
-        </form>
-      </div>
-    </div>
-    
-    <div id="registerPage" class="page">
-      <div class="auth-container">
-        <div class="auth-logo">
-          <h2>注册账号</h2>
-          <p>创建一个新账号</p>
-        </div>
-        <form id="registerForm">
-          <div class="form-group">
-            <label>账号 ID</label>
-            <input type="text" id="registerId" placeholder="设置账号ID（用于登录）" required>
-          </div>
-          <div class="form-group">
-            <label>显示名称</label>
-            <input type="text" id="registerName" placeholder="设置显示名称" required>
-          </div>
-          <div class="form-group">
-            <label>密码</label>
-            <input type="password" id="registerPassword" placeholder="设置密码" required>
-          </div>
-          <div class="form-group">
-            <label>确认密码</label>
-            <input type="password" id="registerConfirmPassword" placeholder="再次输入密码" required>
-          </div>
-          <div class="error" id="registerError"></div>
-          <button type="submit" class="btn">注册</button>
-          <div class="auth-footer">
-            <a href="#" id="showLogin">已有账号？立即登录</a>
-          </div>
-        </form>
-      </div>
-    </div>
-    
-    <div id="chatListPage" class="page">
-      <div id="chatList" class="chat-list">
-        <div class="empty-state">
-          <p>暂无会话</p>
-          <p style="font-size: 13px;">点击右上角菜单，开始聊天</p>
-        </div>
-      </div>
-    </div>
-    
-    <div id="chatPage" class="page">
-      <div class="chat-container active">
-        <div class="chat-header">
-          <div style="display: flex; align-items: center;">
-            <button class="back-btn" id="backBtn">←</button>
-            <h2 id="chatWithName"></h2>
-          </div>
-        </div>
-        <div class="messages" id="messages"></div>
-        <div class="message-input-container">
-          <textarea class="message-input" id="messageInput" placeholder="输入消息..." rows="1"></textarea>
-          <button class="send-btn" id="sendBtn">发送</button>
-        </div>
-      </div>
-    </div>
-    
-    <div id="userListPage" class="page">
-      <div class="user-list-container">
-        <div class="user-list-title">选择联系人开始聊天</div>
-        <div id="userList"></div>
-      </div>
-    </div>
-    
-    <div id="settingsPage" class="page">
-      <div class="settings-container">
-        <div class="settings-section">
-          <h3>账号信息</h3>
-          <div class="setting-item" id="editIdBtn">
-            <div class="label">账号 ID</div>
-            <div class="value" id="currentId"></div>
-          </div>
-          <div class="setting-item" id="editNameBtn">
-            <div class="label">显示名称</div>
-            <div class="value" id="currentName"></div>
-          </div>
-          <div class="setting-item" id="changePasswordBtn">
-            <div class="label">修改密码</div>
-            <div class="value">点击修改</div>
-          </div>
-        </div>
-        <div class="settings-section">
-          <h3>其他</h3>
-          <div class="setting-item" id="logoutBtn">
-            <div class="label" style="color: #ff4d4f;">退出登录</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="selected-count" id="selectedCount">已选择 0 人</div>
+    <div id="selectableContactList" style="height: calc(100vh - 200px); overflow-y: auto;"></div>
   </div>
   
-  <div class="menu-overlay" id="menuOverlay"></div>
-  <div class="menu-panel" id="menuPanel">
-    <h3 id="menuUserName">用户</h3>
-    <div class="menu-item" id="menuNewChat">
-      <span>发起聊天</span>
-      <span class="arrow">›</span>
+  <div class="modal-overlay" id="groupMembersOverlay" onclick="closeGroupMembers()"></div>
+  <div class="modal" id="groupMembersModal">
+    <div class="header">
+      <button class="back-btn" onclick="closeGroupMembers()">‹</button>
+      <h1>群成员</h1>
     </div>
-    <div class="menu-item" id="menuSettings">
-      <span>设置</span>
-      <span class="arrow">›</span>
-    </div>
+    <div id="groupMembersList" style="height: calc(100vh - 120px); overflow-y: auto;"></div>
   </div>
   
-  <div class="modal" id="editIdModal">
-    <div class="modal-content">
-      <h3>修改账号 ID</h3>
-      <form id="editIdForm">
-        <div class="form-group">
-          <label>新账号 ID</label>
-          <input type="text" id="newId" required>
-        </div>
-        <div class="form-group">
-          <label>当前密码</label>
-          <input type="password" id="confirmPasswordForId" required>
-        </div>
-        <div class="error" id="editIdError"></div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-cancel" id="cancelEditId">取消</button>
-          <button type="submit" class="btn">确认</button>
-        </div>
-      </form>
-    </div>
-  </div>
-  
+  <div class="modal-overlay" id="editNameOverlay" onclick="closeEditName()"></div>
   <div class="modal" id="editNameModal">
-    <div class="modal-content">
-      <h3>修改显示名称</h3>
-      <form id="editNameForm">
-        <div class="form-group">
-          <label>新显示名称</label>
-          <input type="text" id="newName" required>
-        </div>
-        <div class="error" id="editNameError"></div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-cancel" id="cancelEditName">取消</button>
-          <button type="submit" class="btn">确认</button>
-        </div>
-      </form>
+    <h3>设置昵称</h3>
+    <div class="form-group">
+      <input type="text" id="newNameInput" placeholder="输入新昵称">
+    </div>
+    <div class="error" id="editNameError"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeEditName()">取消</button>
+      <button class="btn" onclick="saveName()">保存</button>
     </div>
   </div>
   
+  <div class="modal-overlay" id="changePasswordOverlay" onclick="closeChangePassword()"></div>
   <div class="modal" id="changePasswordModal">
-    <div class="modal-content">
-      <h3>修改密码</h3>
-      <form id="changePasswordForm">
-        <div class="form-group">
-          <label>当前密码</label>
-          <input type="password" id="currentPassword" required>
-        </div>
-        <div class="form-group">
-          <label>新密码</label>
-          <input type="password" id="newPassword" required>
-        </div>
-        <div class="form-group">
-          <label>确认新密码</label>
-          <input type="password" id="confirmNewPassword" required>
-        </div>
-        <div class="error" id="changePasswordError"></div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-cancel" id="cancelChangePassword">取消</button>
-          <button type="submit" class="btn">确认</button>
-        </div>
-      </form>
+    <h3>修改密码</h3>
+    <div class="form-group">
+      <input type="password" id="currentPasswordInput" placeholder="当前密码">
+    </div>
+    <div class="form-group">
+      <input type="password" id="newPasswordInput" placeholder="新密码">
+    </div>
+    <div class="form-group">
+      <input type="password" id="confirmPasswordInput" placeholder="确认新密码">
+    </div>
+    <div class="error" id="changePasswordError"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeChangePassword()">取消</button>
+      <button class="btn" onclick="savePassword()">保存</button>
+    </div>
+  </div>
+  
+  <div class="modal-overlay" id="authOverlay"></div>
+  <div class="auth-container" id="authContainer">
+    <div class="auth-logo">
+      <div class="logo">💬</div>
+      <h2>aihub</h2>
+    </div>
+    <div id="loginForm">
+      <div class="form-group">
+        <input type="text" id="loginId" placeholder="账号ID">
+      </div>
+      <div class="form-group">
+        <input type="password" id="loginPassword" placeholder="密码">
+      </div>
+      <div class="error" id="loginError"></div>
+      <button class="btn" onclick="login()">登录</button>
+      <div class="auth-link">
+        <a href="#" onclick="showRegister()">没有账号？立即注册</a>
+      </div>
+    </div>
+    <div id="registerForm" style="display: none;">
+      <div class="form-group">
+        <input type="text" id="registerId" placeholder="账号ID（用于登录）">
+      </div>
+      <div class="form-group">
+        <input type="text" id="registerName" placeholder="昵称">
+      </div>
+      <div class="form-group">
+        <input type="password" id="registerPassword" placeholder="密码">
+      </div>
+      <div class="form-group">
+        <input type="password" id="registerConfirmPassword" placeholder="确认密码">
+      </div>
+      <div class="error" id="registerError"></div>
+      <button class="btn" onclick="register()">注册</button>
+      <div class="auth-link">
+        <a href="#" onclick="showLogin()">已有账号？立即登录</a>
+      </div>
     </div>
   </div>
 
@@ -722,50 +919,64 @@
     const API_BASE = window.location.origin;
     
     let currentUser = null;
-    let currentChatUserId = null;
+    let currentChatId = null;
+    let currentChatType = null;
     let pollingInterval = null;
+    let selectedContacts = [];
     
-    function $(selector) {
-      return document.querySelector(selector);
-    }
-    
-    function $$(selector) {
-      return document.querySelectorAll(selector);
-    }
-    
-    function showPage(pageId) {
-      $$('.page').forEach(p => p.classList.remove('active'));
-      $(`#${pageId}`).classList.add('active');
+    function showTab(tab) {
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.tab-item[data-tab="${tab}"]`).classList.add('active');
       
-      const titles = {
-        'chatListPage': 'aihub',
-        'chatPage': '聊天',
-        'userListPage': '选择联系人',
-        'settingsPage': '设置'
-      };
-      $('#pageTitle').textContent = titles[pageId] || 'aihub';
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      
+      if (tab === 'chat') {
+        document.getElementById('chatPage').classList.add('active');
+        loadChats();
+      } else if (tab === 'contact') {
+        document.getElementById('contactPage').classList.add('active');
+        loadContacts();
+      } else if (tab === 'group') {
+        document.getElementById('groupPage').classList.add('active');
+        loadGroups();
+      } else if (tab === 'profile') {
+        document.getElementById('profilePage').classList.add('active');
+        updateProfile();
+      }
     }
     
-    function showError(elementId, message) {
-      const errorEl = $(`#${elementId}`);
-      errorEl.textContent = message;
-      errorEl.style.display = 'block';
-      setTimeout(() => errorEl.style.display = 'none', 3000);
+    function getAvatar(name, isGroup = false) {
+      if (isGroup) return '👥';
+      return name.charAt(0).toUpperCase();
+    }
+    
+    function formatTime(dateStr) {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diff = now - date;
+      
+      if (diff < 86400000 && date.getDate() === now.getDate()) {
+        return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      }
+      return date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
     }
     
     function checkAuth() {
       const user = localStorage.getItem('aihub_user');
       if (user) {
         currentUser = JSON.parse(user);
-        showPage('chatListPage');
+        document.getElementById('authOverlay').style.display = 'none';
         loadChats();
         startPolling();
       } else {
-        showPage('loginPage');
+        document.getElementById('authOverlay').style.display = 'block';
       }
     }
     
-    async function login(id, password) {
+    async function login() {
+      const id = document.getElementById('loginId').value;
+      const password = document.getElementById('loginPassword').value;
+      
       try {
         const response = await fetch(`${API_BASE}/api/login`, {
           method: 'POST',
@@ -779,18 +990,31 @@
           currentUser = data.user;
           localStorage.setItem('aihub_user', JSON.stringify(data.user));
           localStorage.setItem('aihub_token', data.token);
-          showPage('chatListPage');
+          document.getElementById('authOverlay').style.display = 'none';
           loadChats();
           startPolling();
         } else {
-          showError('loginError', data.error || '登录失败');
+          document.getElementById('loginError').textContent = data.error || '登录失败';
+          document.getElementById('loginError').style.display = 'block';
         }
       } catch (error) {
-        showError('loginError', '网络错误，请检查服务器连接');
+        document.getElementById('loginError').textContent = '网络错误';
+        document.getElementById('loginError').style.display = 'block';
       }
     }
     
-    async function register(id, name, password) {
+    async function register() {
+      const id = document.getElementById('registerId').value;
+      const name = document.getElementById('registerName').value;
+      const password = document.getElementById('registerPassword').value;
+      const confirmPassword = document.getElementById('registerConfirmPassword').value;
+      
+      if (password !== confirmPassword) {
+        document.getElementById('registerError').textContent = '两次密码输入不一致';
+        document.getElementById('registerError').style.display = 'block';
+        return;
+      }
+      
       try {
         const response = await fetch(`${API_BASE}/api/register`, {
           method: 'POST',
@@ -801,19 +1025,31 @@
         const data = await response.json();
         
         if (response.ok) {
-          showError('registerError', '注册成功！请登录');
-          setTimeout(() => showPage('loginPage'), 1000);
+          alert('注册成功！请登录');
+          showLogin();
         } else {
-          showError('registerError', data.error || '注册失败');
+          document.getElementById('registerError').textContent = data.error || '注册失败';
+          document.getElementById('registerError').style.display = 'block';
         }
       } catch (error) {
-        showError('registerError', '网络错误');
+        document.getElementById('registerError').textContent = '网络错误';
+        document.getElementById('registerError').style.display = 'block';
       }
     }
     
+    function showRegister() {
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('registerForm').style.display = 'block';
+    }
+    
+    function showLogin() {
+      document.getElementById('loginForm').style.display = 'block';
+      document.getElementById('registerForm').style.display = 'none';
+    }
+    
     async function loadChats() {
+      const token = localStorage.getItem('aihub_token');
       try {
-        const token = localStorage.getItem('aihub_token');
         const response = await fetch(`${API_BASE}/api/chats`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -828,87 +1064,226 @@
     }
     
     function renderChats(chats) {
-      const chatList = $('#chatList');
+      const chatList = document.getElementById('chatList');
       
       if (chats.length === 0) {
-        chatList.innerHTML = `
-          <div class="empty-state">
-            <p>暂无会话</p>
-            <p style="font-size: 13px;">点击右上角菜单，开始聊天</p>
-          </div>
-        `;
+        chatList.innerHTML = '<div class="empty-state">暂无会话<br>点击联系人发起聊天</div>';
         return;
       }
       
       chatList.innerHTML = chats.map(chat => `
-        <div class="chat-item" data-id="${chat.userId}">
-          <div class="name"><span class="online-indicator"></span>${chat.name}</div>
-          <div class="last-message">${chat.lastMessage || '暂无消息'}</div>
-          <div class="time">${chat.lastMessageTime || ''}</div>
+        <div class="chat-list-item" onclick="openChat('${chat.id}', '${chat.type}')">
+          <div class="avatar ${chat.type === 'group' ? 'group' : ''}">${getAvatar(chat.name, chat.type === 'group')}</div>
+          <div class="info">
+            <div class="name-row">
+              <div class="name">${chat.name}</div>
+              <div class="time">${chat.lastMessageTime ? formatTime(chat.lastMessageTime) : ''}</div>
+            </div>
+            <div class="last-msg">${chat.lastMessage || '暂无消息'}</div>
+          </div>
         </div>
       `).join('');
-      
-      chatList.querySelectorAll('.chat-item').forEach(item => {
-        item.addEventListener('click', () => openChat(item.dataset.id));
-      });
     }
     
-    async function loadUsers() {
+    async function loadContacts() {
+      const token = localStorage.getItem('aihub_token');
       try {
-        const token = localStorage.getItem('aihub_token');
         const response = await fetch(`${API_BASE}/api/users`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (response.ok) {
           const users = await response.json();
-          renderUsers(users);
+          renderContacts(users);
         }
       } catch (error) {
-        console.error('加载用户失败:', error);
+        console.error('加载联系人失败:', error);
       }
     }
     
-    function renderUsers(users) {
-      const userList = $('#userList');
-      userList.innerHTML = users.map(user => `
-        <div class="user-item" data-id="${user.id}">
+    function renderContacts(users) {
+      const contactList = document.getElementById('contactList');
+      
+      if (users.length === 0) {
+        contactList.innerHTML = '<div class="empty-state">暂无联系人</div>';
+        return;
+      }
+      
+      contactList.innerHTML = users.map(user => `
+        <div class="contact-list-item" onclick="openChat('${user.id}', 'private')">
+          <div class="avatar">${getAvatar(user.name)}</div>
           <div class="name">${user.name}</div>
-          <div class="id">ID: ${user.id}</div>
+          <div class="arrow">›</div>
         </div>
       `).join('');
-      
-      userList.querySelectorAll('.user-item').forEach(item => {
-        item.addEventListener('click', () => openChat(item.dataset.id));
-      });
     }
     
-    async function openChat(userId) {
-      currentChatUserId = userId;
-      
+    async function loadGroups() {
+      const token = localStorage.getItem('aihub_token');
       try {
-        const token = localStorage.getItem('aihub_token');
-        const response = await fetch(`${API_BASE}/api/users/${userId}`, {
+        const response = await fetch(`${API_BASE}/api/groups`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (response.ok) {
-          const user = await response.json();
-          $('#chatWithName').textContent = user.name;
-          showPage('chatPage');
-          await loadMessages();
+          const groups = await response.json();
+          renderGroups(groups);
         }
       } catch (error) {
-        console.error('打开聊天失败:', error);
+        console.error('加载群聊失败:', error);
       }
     }
     
-    async function loadMessages() {
-      if (!currentChatUserId) return;
+    function renderGroups(groups) {
+      const groupList = document.getElementById('groupList');
+      
+      if (groups.length === 0) {
+        groupList.innerHTML = '<div class="empty-state">暂无群聊<br>从通讯录发起群聊</div>';
+        return;
+      }
+      
+      groupList.innerHTML = groups.map(group => `
+        <div class="chat-list-item" onclick="openChat('${group.id}', 'group')">
+          <div class="avatar group">👥</div>
+          <div class="info">
+            <div class="name-row">
+              <div class="name">${group.name}</div>
+              <div class="time">${group.lastMessageTime ? formatTime(group.lastMessageTime) : ''}</div>
+            </div>
+            <div class="last-msg">${group.lastMessage || '暂无消息'}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    document.getElementById('showAllContacts').onclick = function() {
+      openSelectContact();
+    };
+    
+    async function openSelectContact() {
+      selectedContacts = [];
+      const token = localStorage.getItem('aihub_token');
+      try {
+        const response = await fetch(`${API_BASE}/api/users`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const users = await response.json();
+          renderSelectableContacts(users);
+          document.getElementById('selectContactOverlay').classList.add('active');
+          document.getElementById('selectContactModal').classList.add('active');
+        }
+      } catch (error) {
+        console.error('加载联系人失败:', error);
+      }
+    }
+    
+    function renderSelectableContacts(users) {
+      const list = document.getElementById('selectableContactList');
+      list.innerHTML = users.map(user => `
+        <div class="selectable-item" data-id="${user.id}" data-name="${user.name}" onclick="toggleSelectContact(this)">
+          <div class="checkbox"></div>
+          <div class="avatar">${getAvatar(user.name)}</div>
+          <div class="name">${user.name}</div>
+        </div>
+      `).join('');
+    }
+    
+    function toggleSelectContact(el) {
+      const id = el.dataset.id;
+      const name = el.dataset.name;
+      
+      el.classList.toggle('selected');
+      
+      if (el.classList.contains('selected')) {
+        selectedContacts.push({ id, name });
+      } else {
+        selectedContacts = selectedContacts.filter(c => c.id !== id);
+      }
+      
+      document.getElementById('selectedCount').textContent = `已选择 ${selectedContacts.length} 人`;
+    }
+    
+    function closeSelectContact() {
+      document.getElementById('selectContactOverlay').classList.remove('active');
+      document.getElementById('selectContactModal').classList.remove('active');
+    }
+    
+    async function createGroup() {
+      if (selectedContacts.length < 2) {
+        alert('请选择至少2个人创建群聊');
+        return;
+      }
+      
+      const name = prompt('请输入群聊名称：', '群聊');
+      if (!name) return;
+      
+      const token = localStorage.getItem('aihub_token');
+      const memberIds = selectedContacts.map(c => c.id);
       
       try {
+        const response = await fetch(`${API_BASE}/api/groups`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ name, memberIds })
+        });
+        
+        if (response.ok) {
+          const group = await response.json();
+          closeSelectContact();
+          openChat(group.id, 'group');
+        } else {
+          alert('创建群聊失败');
+        }
+      } catch (error) {
+        alert('网络错误');
+      }
+    }
+    
+    async function openChat(chatId, chatType) {
+      currentChatId = chatId;
+      currentChatType = chatType;
+      
+      await loadMessages();
+      
+      if (chatType === 'group') {
         const token = localStorage.getItem('aihub_token');
-        const response = await fetch(`${API_BASE}/api/messages/${currentChatUserId}`, {
+        const response = await fetch(`${API_BASE}/api/groups/${chatId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const group = await response.json();
+          document.getElementById('chatMemberCount').textContent = `${group.members.length} 位群成员 ›`;
+        }
+      } else {
+        document.getElementById('chatMemberCount').textContent = '';
+      }
+      
+      document.getElementById('chatDetailOverlay').classList.add('active');
+      document.getElementById('chatDetailModal').classList.add('active');
+      
+      document.getElementById('messageInput').focus();
+    }
+    
+    function closeChatDetail() {
+      currentChatId = null;
+      currentChatType = null;
+      document.getElementById('chatDetailOverlay').classList.remove('active');
+      document.getElementById('chatDetailModal').classList.remove('active');
+    }
+    
+    async function loadMessages() {
+      const token = localStorage.getItem('aihub_token');
+      const endpoint = currentChatType === 'group' 
+        ? `${API_BASE}/api/groups/${currentChatId}/messages`
+        : `${API_BASE}/api/messages/${currentChatId}`;
+      
+      try {
+        const response = await fetch(endpoint, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -922,49 +1297,52 @@
     }
     
     function renderMessages(messages) {
-      const messagesEl = $('#messages');
-      messagesEl.innerHTML = messages.map(msg => `
-        <div class="message ${msg.senderId === currentUser.id ? 'sent' : 'received'}">
-          ${msg.senderId !== currentUser.id ? `<div class="sender">${msg.senderName}</div>` : ''}
-          <div class="content">${msg.content}</div>
-          <div class="time">${formatTime(msg.createdAt)}</div>
-        </div>
-      `).join('');
+      const messagesEl = document.getElementById('messages');
+      
+      messagesEl.innerHTML = messages.map(msg => {
+        const isSent = msg.senderId === currentUser.id;
+        const showName = currentChatType === 'group' && !isSent;
+        return `
+          <div class="message ${isSent ? 'sent' : 'received'}">
+            <div class="avatar">${getAvatar(msg.senderName)}</div>
+            <div class="content-wrapper">
+              ${showName ? `<div class="name">${msg.senderName}</div>` : ''}
+              <div class="bubble">${msg.content}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
       
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
     
-    function formatTime(dateStr) {
-      const date = new Date(dateStr);
-      const now = new Date();
-      const diff = now - date;
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const content = input.value.trim();
       
-      if (diff < 86400000) {
-        return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      }
-      return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }) + ' ' + 
-             date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-    }
-    
-    async function sendMessage(content) {
-      if (!content.trim() || !currentChatUserId) return;
+      if (!content) return;
+      
+      const token = localStorage.getItem('aihub_token');
+      const endpoint = currentChatType === 'group'
+        ? `${API_BASE}/api/groups/${currentChatId}/messages`
+        : `${API_BASE}/api/messages`;
+      
+      const body = currentChatType === 'group'
+        ? { content }
+        : { receiverId: currentChatId, content };
       
       try {
-        const token = localStorage.getItem('aihub_token');
-        const response = await fetch(`${API_BASE}/api/messages`, {
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({
-            receiverId: currentChatUserId,
-            content: content.trim()
-          })
+          body: JSON.stringify(body)
         });
         
         if (response.ok) {
-          $('#messageInput').value = '';
+          input.value = '';
           await loadMessages();
           loadChats();
         }
@@ -973,212 +1351,146 @@
       }
     }
     
+    document.getElementById('messageInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    
+    function showGroupMembers() {
+      const token = localStorage.getItem('aihub_token');
+      fetch(`${API_BASE}/api/groups/${currentChatId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(r => r.json()).then(group => {
+        const list = document.getElementById('groupMembersList');
+        list.innerHTML = group.members.map(m => `
+          <div class="contact-list-item">
+            <div class="avatar">${getAvatar(m.name)}</div>
+            <div class="name">${m.name}</div>
+          </div>
+        `).join('');
+        
+        document.getElementById('groupMembersOverlay').classList.add('active');
+        document.getElementById('groupMembersModal').classList.add('active');
+      });
+    }
+    
+    function closeGroupMembers() {
+      document.getElementById('groupMembersOverlay').classList.remove('active');
+      document.getElementById('groupMembersModal').classList.remove('active');
+    }
+    
+    function updateProfile() {
+      document.getElementById('profileAvatar').textContent = getAvatar(currentUser.name);
+      document.getElementById('profileName').textContent = currentUser.name;
+      document.getElementById('profileId').textContent = `ID: ${currentUser.id}`;
+    }
+    
+    document.getElementById('editNameBtn').onclick = function() {
+      document.getElementById('newNameInput').value = currentUser.name;
+      document.getElementById('editNameOverlay').classList.add('active');
+      document.getElementById('editNameModal').classList.add('active');
+    };
+    
+    function closeEditName() {
+      document.getElementById('editNameOverlay').classList.remove('active');
+      document.getElementById('editNameModal').classList.remove('active');
+      document.getElementById('editNameError').style.display = 'none';
+    }
+    
+    async function saveName() {
+      const newName = document.getElementById('newNameInput').value.trim();
+      if (!newName) return;
+      
+      const token = localStorage.getItem('aihub_token');
+      const response = await fetch(`${API_BASE}/api/profile`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ type: 'name', newName })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        currentUser = data.user;
+        localStorage.setItem('aihub_user', JSON.stringify(data.user));
+        closeEditName();
+        updateProfile();
+      } else {
+        const data = await response.json();
+        document.getElementById('editNameError').textContent = data.error;
+        document.getElementById('editNameError').style.display = 'block';
+      }
+    }
+    
+    document.getElementById('changePasswordBtn').onclick = function() {
+      document.getElementById('currentPasswordInput').value = '';
+      document.getElementById('newPasswordInput').value = '';
+      document.getElementById('confirmPasswordInput').value = '';
+      document.getElementById('changePasswordOverlay').classList.add('active');
+      document.getElementById('changePasswordModal').classList.add('active');
+    };
+    
+    function closeChangePassword() {
+      document.getElementById('changePasswordOverlay').classList.remove('active');
+      document.getElementById('changePasswordModal').classList.remove('active');
+      document.getElementById('changePasswordError').style.display = 'none';
+    }
+    
+    async function savePassword() {
+      const currentPassword = document.getElementById('currentPasswordInput').value;
+      const newPassword = document.getElementById('newPasswordInput').value;
+      const confirmPassword = document.getElementById('confirmPasswordInput').value;
+      
+      if (newPassword !== confirmPassword) {
+        document.getElementById('changePasswordError').textContent = '两次密码输入不一致';
+        document.getElementById('changePasswordError').style.display = 'block';
+        return;
+      }
+      
+      const token = localStorage.getItem('aihub_token');
+      const response = await fetch(`${API_BASE}/api/profile`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ type: 'password', currentPassword, newPassword })
+      });
+      
+      if (response.ok) {
+        alert('密码修改成功！');
+        closeChangePassword();
+      } else {
+        const data = await response.json();
+        document.getElementById('changePasswordError').textContent = data.error;
+        document.getElementById('changePasswordError').style.display = 'block';
+      }
+    }
+    
+    document.getElementById('logoutBtn').onclick = function() {
+      if (confirm('确定退出登录？')) {
+        localStorage.removeItem('aihub_user');
+        localStorage.removeItem('aihub_token');
+        currentUser = null;
+        if (pollingInterval) clearInterval(pollingInterval);
+        document.getElementById('authOverlay').style.display = 'block';
+      }
+    };
+    
     function startPolling() {
       if (pollingInterval) clearInterval(pollingInterval);
       
       pollingInterval = setInterval(async () => {
-        if (currentChatUserId && $('#chatPage').classList.contains('active')) {
+        if (currentChatId) {
           await loadMessages();
         }
         await loadChats();
       }, 3000);
     }
-    
-    function logout() {
-      localStorage.removeItem('aihub_user');
-      localStorage.removeItem('aihub_token');
-      currentUser = null;
-      currentChatUserId = null;
-      if (pollingInterval) clearInterval(pollingInterval);
-      showPage('loginPage');
-    }
-    
-    async function updateProfile(type, data) {
-      try {
-        const token = localStorage.getItem('aihub_token');
-        const response = await fetch(`${API_BASE}/api/profile`, {
-          method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ type, ...data })
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-          currentUser = result.user;
-          localStorage.setItem('aihub_user', JSON.stringify(result.user));
-          return true;
-        } else {
-          return result.error;
-        }
-      } catch (error) {
-        return '网络错误';
-      }
-    }
-    
-    $('#loginForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const id = $('#loginId').value;
-      const password = $('#loginPassword').value;
-      login(id, password);
-    });
-    
-    $('#registerForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const id = $('#registerId').value;
-      const name = $('#registerName').value;
-      const password = $('#registerPassword').value;
-      const confirmPassword = $('#registerConfirmPassword').value;
-      
-      if (password !== confirmPassword) {
-        showError('registerError', '两次密码输入不一致');
-        return;
-      }
-      
-      register(id, name, password);
-    });
-    
-    $('#showRegister').addEventListener('click', (e) => {
-      e.preventDefault();
-      showPage('registerPage');
-    });
-    
-    $('#showLogin').addEventListener('click', (e) => {
-      e.preventDefault();
-      showPage('loginPage');
-    });
-    
-    $('#backBtn').addEventListener('click', () => {
-      currentChatUserId = null;
-      showPage('chatListPage');
-    });
-    
-    $('#sendBtn').addEventListener('click', () => {
-      const content = $('#messageInput').value;
-      sendMessage(content);
-    });
-    
-    $('#messageInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        const content = $('#messageInput').value;
-        sendMessage(content);
-      }
-    });
-    
-    $('#menuBtn').addEventListener('click', () => {
-      $('#menuOverlay').classList.add('active');
-      $('#menuPanel').classList.add('active');
-      $('#menuUserName').textContent = currentUser?.name || '用户';
-    });
-    
-    $('#menuOverlay').addEventListener('click', closeMenu);
-    
-    function closeMenu() {
-      $('#menuOverlay').classList.remove('active');
-      $('#menuPanel').classList.remove('active');
-    }
-    
-    $('#menuNewChat').addEventListener('click', () => {
-      closeMenu();
-      loadUsers();
-      showPage('userListPage');
-    });
-    
-    $('#menuSettings').addEventListener('click', () => {
-      closeMenu();
-      $('#currentId').textContent = currentUser?.id || '';
-      $('#currentName').textContent = currentUser?.name || '';
-      showPage('settingsPage');
-    });
-    
-    $('#logoutBtn').addEventListener('click', () => {
-      logout();
-    });
-    
-    $('#editIdBtn').addEventListener('click', () => {
-      $('#editIdModal').classList.add('active');
-    });
-    
-    $('#cancelEditId').addEventListener('click', () => {
-      $('#editIdModal').classList.remove('active');
-    });
-    
-    $('#editIdForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const newId = $('#newId').value;
-      const password = $('#confirmPasswordForId').value;
-      
-      const error = await updateProfile('id', { newId, password });
-      if (error) {
-        showError('editIdError', error);
-      } else {
-        $('#editIdModal').classList.remove('active');
-        $('#currentId').textContent = currentUser?.id || '';
-      }
-    });
-    
-    $('#editNameBtn').addEventListener('click', () => {
-      $('#newName').value = currentUser?.name || '';
-      $('#editNameModal').classList.add('active');
-    });
-    
-    $('#cancelEditName').addEventListener('click', () => {
-      $('#editNameModal').classList.remove('active');
-    });
-    
-    $('#editNameForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const newName = $('#newName').value;
-      
-      const error = await updateProfile('name', { newName });
-      if (error) {
-        showError('editNameError', error);
-      } else {
-        $('#editNameModal').classList.remove('active');
-        $('#currentName').textContent = currentUser?.name || '';
-        $('#menuUserName').textContent = currentUser?.name || '';
-      }
-    });
-    
-    $('#changePasswordBtn').addEventListener('click', () => {
-      $('#changePasswordModal').classList.add('active');
-    });
-    
-    $('#cancelChangePassword').addEventListener('click', () => {
-      $('#changePasswordModal').classList.remove('active');
-    });
-    
-    $('#changePasswordForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const currentPassword = $('#currentPassword').value;
-      const newPassword = $('#newPassword').value;
-      const confirmNewPassword = $('#confirmNewPassword').value;
-      
-      if (newPassword !== confirmNewPassword) {
-        showError('changePasswordError', '两次新密码输入不一致');
-        return;
-      }
-      
-      const error = await updateProfile('password', { currentPassword, newPassword });
-      if (error) {
-        showError('changePasswordError', error);
-      } else {
-        $('#changePasswordModal').classList.remove('active');
-        alert('密码修改成功！');
-      }
-    });
-    
-    $$('.modal').forEach(modal => {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.classList.remove('active');
-        }
-      });
-    });
     
     checkAuth();
   </script>

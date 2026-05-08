@@ -22,13 +22,17 @@ const DB_PATH = path.join(ROOT_DIR, 'data.json');
 
 let db = {
   users: {},
-  messages: []
+  messages: [],
+  groups: []
 };
 
 function loadDB() {
   try {
     if (fs.existsSync(DB_PATH)) {
-      db = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+      const data = fs.readFileSync(DB_PATH, 'utf8');
+      db = JSON.parse(data);
+      if (!db.groups) db.groups = [];
+      if (!db.messages) db.messages = [];
     }
   } catch (error) {
     console.error('Error loading DB:', error);
@@ -220,6 +224,7 @@ async function handleAPI(req, res) {
         senderId: user.id,
         senderName: user.name,
         receiverId,
+        type: 'private',
         content,
         createdAt: new Date().toISOString()
       };
@@ -236,8 +241,9 @@ async function handleAPI(req, res) {
       const otherUserId = pathname.substring('/api/messages/'.length);
       
       const messages = db.messages.filter(msg =>
-        (msg.senderId === user.id && msg.receiverId === otherUserId) ||
-        (msg.senderId === otherUserId && msg.receiverId === user.id)
+        msg.type === 'private' &&
+        ((msg.senderId === user.id && msg.receiverId === otherUserId) ||
+        (msg.senderId === otherUserId && msg.receiverId === user.id))
       ).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
       
       res.writeHead(200);
@@ -246,30 +252,208 @@ async function handleAPI(req, res) {
     }
     
     if (pathname === '/api/chats' && method === 'GET') {
-      const chatMap = {};
+      const chats = [];
       
       db.messages.forEach(msg => {
-        const otherId = msg.senderId === user.id ? msg.receiverId : msg.senderId;
-        const otherUser = db.users[otherId];
-        
-        if (!otherUser) return;
-        
-        if (!chatMap[otherId] || new Date(msg.createdAt) > new Date(chatMap[otherId].lastMessageTime)) {
-          chatMap[otherId] = {
-            userId: otherId,
-            name: otherUser.name,
-            lastMessage: msg.content,
-            lastMessageTime: msg.createdAt
-          };
+        if (msg.type === 'private') {
+          const otherId = msg.senderId === user.id ? msg.receiverId : msg.senderId;
+          const otherUser = db.users[otherId];
+          
+          if (!otherUser) return;
+          
+          const existing = chats.find(c => c.id === otherId && c.type === 'private');
+          if (!existing || new Date(msg.createdAt) > new Date(existing.lastMessageTime)) {
+            if (existing) {
+              existing.lastMessage = msg.content;
+              existing.lastMessageTime = msg.createdAt;
+            } else {
+              chats.push({
+                id: otherId,
+                type: 'private',
+                name: otherUser.name,
+                lastMessage: msg.content,
+                lastMessageTime: msg.createdAt
+              });
+            }
+          }
         }
       });
       
-      const chats = Object.values(chatMap).sort((a, b) => 
-        new Date(b.lastMessageTime) - new Date(a.lastMessageTime)
-      );
+      db.groups.forEach(group => {
+        if (group.members.includes(user.id)) {
+          const groupMessages = db.messages.filter(m => m.type === 'group' && m.groupId === group.id);
+          const lastMsg = groupMessages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+          
+          chats.push({
+            id: group.id,
+            type: 'group',
+            name: group.name,
+            lastMessage: lastMsg ? lastMsg.content : null,
+            lastMessageTime: lastMsg ? lastMsg.createdAt : null
+          });
+        }
+      });
+      
+      chats.sort((a, b) => {
+        if (!a.lastMessageTime) return 1;
+        if (!b.lastMessageTime) return -1;
+        return new Date(b.lastMessageTime) - new Date(a.lastMessageTime);
+      });
       
       res.writeHead(200);
       res.end(JSON.stringify(chats));
+      return;
+    }
+    
+    if (pathname === '/api/groups' && method === 'GET') {
+      const userGroups = db.groups.filter(g => g.members.includes(user.id));
+      const result = userGroups.map(group => {
+        const groupMessages = db.messages.filter(m => m.type === 'group' && m.groupId === group.id);
+        const lastMsg = groupMessages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+        return {
+          id: group.id,
+          name: group.name,
+          memberIds: group.members,
+          lastMessage: lastMsg ? lastMsg.content : null,
+          lastMessageTime: lastMsg ? lastMsg.createdAt : null
+        };
+      });
+      
+      res.writeHead(200);
+      res.end(JSON.stringify(result));
+      return;
+    }
+    
+    if (pathname === '/api/groups' && method === 'POST') {
+      const body = await parseBody(req);
+      const { name, memberIds } = body;
+      
+      if (!name || !memberIds || memberIds.length < 2) {
+        res.writeHead(400);
+        res.end(JSON.stringify({ error: '群聊名称和至少2个成员是必需的' }));
+        return;
+      }
+      
+      const members = [...new Set([user.id, ...memberIds])];
+      const group = {
+        id: Date.now().toString(),
+        name,
+        members,
+        creatorId: user.id,
+        createdAt: new Date().toISOString()
+      };
+      
+      db.groups.push(group);
+      saveDB();
+      
+      res.writeHead(200);
+      res.end(JSON.stringify({
+        id: group.id,
+        name: group.name,
+        members: members.map(m => ({
+          id: m,
+          name: db.users[m]?.name || m
+        }))
+      }));
+      return;
+    }
+    
+    if (pathname.startsWith('/api/groups/') && method === 'GET') {
+      const groupId = pathname.substring('/api/groups/'.length);
+      const group = db.groups.find(g => g.id === groupId);
+      
+      if (!group) {
+        res.writeHead(404);
+        res.end(JSON.stringify({ error: '群聊不存在' }));
+        return;
+      }
+      
+      if (!group.members.includes(user.id)) {
+        res.writeHead(403);
+        res.end(JSON.stringify({ error: '你不是群聊成员' }));
+        return;
+      }
+      
+      res.writeHead(200);
+      res.end(JSON.stringify({
+        id: group.id,
+        name: group.name,
+        members: group.members.map(m => ({
+          id: m,
+          name: db.users[m]?.name || m
+        })),
+        creatorId: group.creatorId
+      }));
+      return;
+    }
+    
+    if (pathname.startsWith('/api/groups/') && pathname.endsWith('/messages') && method === 'POST') {
+      const parts = pathname.substring('/api/groups/'.length).split('/');
+      const groupId = parts[0];
+      const group = db.groups.find(g => g.id === groupId);
+      
+      if (!group) {
+        res.writeHead(404);
+        res.end(JSON.stringify({ error: '群聊不存在' }));
+        return;
+      }
+      
+      if (!group.members.includes(user.id)) {
+        res.writeHead(403);
+        res.end(JSON.stringify({ error: '你不是群聊成员' }));
+        return;
+      }
+      
+      const body = await parseBody(req);
+      const { content } = body;
+      
+      if (!content) {
+        res.writeHead(400);
+        res.end(JSON.stringify({ error: '消息内容不能为空' }));
+        return;
+      }
+      
+      const message = {
+        id: Date.now().toString(),
+        senderId: user.id,
+        senderName: user.name,
+        groupId,
+        type: 'group',
+        content,
+        createdAt: new Date().toISOString()
+      };
+      
+      db.messages.push(message);
+      saveDB();
+      
+      res.writeHead(200);
+      res.end(JSON.stringify(message));
+      return;
+    }
+    
+    if (pathname.startsWith('/api/groups/') && pathname.endsWith('/messages') && method === 'GET') {
+      const parts = pathname.substring('/api/groups/'.length).split('/');
+      const groupId = parts[0];
+      const group = db.groups.find(g => g.id === groupId);
+      
+      if (!group) {
+        res.writeHead(404);
+        res.end(JSON.stringify({ error: '群聊不存在' }));
+        return;
+      }
+      
+      if (!group.members.includes(user.id)) {
+        res.writeHead(403);
+        res.end(JSON.stringify({ error: '你不是群聊成员' }));
+        return;
+      }
+      
+      const messages = db.messages
+        .filter(m => m.type === 'group' && m.groupId === groupId)
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      
+      res.writeHead(200);
+      res.end(JSON.stringify(messages));
       return;
     }
     
@@ -296,6 +480,12 @@ async function handleAPI(req, res) {
           if (msg.senderId === user.id) msg.senderId = newId;
           if (msg.receiverId === user.id) msg.receiverId = newId;
           return msg;
+        });
+        
+        db.groups = db.groups.map(g => {
+          if (g.creatorId === user.id) g.creatorId = newId;
+          g.members = g.members.map(m => m === user.id ? newId : m);
+          return g;
         });
         
         const userData = db.users[user.id];
